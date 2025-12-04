@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Pakar Diagnosa Gastritis - Certainty Factor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .gejala-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.2s;
+        }
+
+        .gejala-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .gejala-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .gejala-nama {
+            font-weight: 600;
+            color: #333;
+            flex: 1;
+        }
+
+        .gejala-kode {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .slider-container {
+            margin-top: 10px;
+        }
+
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+        }
+
+        .selected-value {
+            text-align: center;
+            margin-top: 8px;
+            font-weight: 600;
+            color: #667eea;
+            font-size: 14px;
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .hasil-section {
+            display: none;
+            margin-top: 30px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+
+        .hasil-section.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hasil-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .hasil-main {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .cf-value {
+            font-size: 48px;
+            font-weight: 700;
+            color: #667eea;
+            margin: 20px 0;
+        }
+
+        .risiko-badge {
+            display: inline-block;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 18px;
+            margin: 15px 0;
+        }
+
+        .risiko-tinggi {
+            background: #ff4757;
+            color: white;
+        }
+
+        .risiko-sedang {
+            background: #ffa502;
+            color: white;
+        }
+
+        .risiko-rendah {
+            background: #2ed573;
+            color: white;
+        }
+
+        .solusi-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
+        .trace-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .trace-table th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .trace-table td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .trace-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .kombinasi-steps {
+            background: #e8eaf6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 13px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+            }
+            
+            .header h1 {
+                font-size: 22px;
+            }
+            
+            .btn-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🏥 Sistem Pakar Diagnosa Gastritis</h1>
+            <p>Metode: Certainty Factor (CF) | Universitas Suryakancana</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <h2 class="section-title">📋 Pilih Gejala yang Anda Rasakan</h2>
+            <p style="margin-bottom: 20px; color: #666;">
+                Geser slider untuk menentukan tingkat keyakinan Anda terhadap setiap gejala yang dirasakan.
+            </p>
+
+            <!-- Container untuk daftar gejala (akan diisi oleh JavaScript) -->
+            <div id="gejalaContainer"></div>
+
+            <!-- Tombol Aksi -->
+            <div class="btn-container">
+                <button class="btn btn-primary" onclick="diagnosa()">
+                    🔍 Analisa Sekarang
+                </button>
+                <button class="btn btn-secondary" onclick="resetForm()">
+                    🔄 Reset
+                </button>
+            </div>
+
+            <!-- Hasil Diagnosa -->
+            <div id="hasilSection" class="hasil-section">
+                <h2 class="section-title">📊 Hasil Diagnosa</h2>
+                
+                <!-- Hasil Utama -->
+                <div class="hasil-card hasil-main">
+                    <h3 style="color: #666; margin-bottom: 10px;">Tingkat Kepastian Diagnosa</h3>
+                    <div class="cf-value" id="cfValue">0%</div>
+                    <div id="risikoBadge" class="risiko-badge">-</div>
+                    <p style="margin-top: 15px; font-size: 18px; color: #333;">
+                        <strong>Diagnosa:</strong> Gastritis (P01)
+                    </p>
+                    <div class="solusi-box" id="solusiBox">
+                        <strong>💡 Saran Penanganan:</strong>
+                        <p id="solusiText" style="margin-top: 8px;"></p>
+                    </div>
+                </div>
+
+                <!-- Rincian Perhitungan -->
+                <div class="hasil-card">
+                    <h3 style="color: #667eea; margin-bottom: 15px;">📈 Rincian Perhitungan CF Per Gejala</h3>
+                    <table class="trace-table">
+                        <thead>
+                            <tr>
+                                <th>Kode</th>
+                                <th>Gejala</th>
+                                <th>CF User</th>
+                                <th>CF Pakar</th>
+                                <th>CF Hasil</th>
+                            </tr>
+                        </thead>
+                        <tbody id="traceTableBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- Kombinasi CF -->
+                <div class="hasil-card">
+                    <h3 style="color: #667eea; margin-bottom: 15px;">🔄 Proses Kombinasi CF Sekuensial</h3>
+                    <div id="kombinasiSteps" class="kombinasi-steps"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Sistem Pakar - Mata Kuliah Sistem Pakar | Teknik Informatika UNSUR</p>
+            <p style="margin-top: 5px;">Kelompok: M Ari Rahman, M Irsan, Darius, Juan</p>
+        </div>
+    </div>
+
+    <script>
+        // =====================================================================
+        // CLASS DEFINITIONS (Sesuai Class Diagram)
+        // =====================================================================
+
+        /**
+         * Class Gejala
+         * Merepresentasikan data gejala dengan atribut dan method
+         */
+        class Gejala {
+            constructor(kode, nama, bobotPakar) {
+                this.kode = kode;
+                this.nama = nama;
+                this.bobotPakar = bobotPakar; // CF Pakar
+                this.cfUser = 0.0; // CF User (input dari pengguna)
+                this.cfHasil = 0.0; // CF hasil perhitungan
+            }
+
+            setCfUser(nilai) {
+                this.cfUser = nilai;
+            }
+
+            hitungCfHasil() {
+                this.cfHasil = this.cfUser * this.bobotPakar;
+                return this.cfHasil;
+            }
+        }
+
+        /**
+         * Class CertaintyFactor
+         * Engine perhitungan CF (static methods)
+         */
+        class CertaintyFactor {
+            static hitungCfGejala(cfUser, cfPakar) {
+                return cfUser * cfPakar;
+            }
+
+            static kombinasiCf(cfLama, cfBaru) {
+                return cfLama + cfBaru * (1 - cfLama);
+            }
+
+            static hitungKombinasiSekuensial(listCfGejala) {
+                let cfKombinasi = 0.0;
+                for (let cf of listCfGejala) {
+                    if (cf > 0) {
+                        cfKombinasi = this.kombinasiCf(cfKombinasi, cf);
+                    }
+                }
+                return cfKombinasi;
+            }
+        }
+
+        /**
+         * Class HasilDiagnosa
+         * Menyimpan hasil diagnosa akhir
+         */
+        class HasilDiagnosa {
+            constructor(cfFinal, penyakit = "Gastritis (P01)") {
+                this.cfFinal = cfFinal;
+                this.persentase = cfFinal * 100;
+                this.penyakit = penyakit;
+                this.tingkatRisiko = this._tentukanRisiko();
+                this.solusi = this._generateSolusi();
+            }
+
+            _tentukanRisiko() {
+                if (this.persentase >= 80) return "RISIKO TINGGI";
+                if (this.persentase >= 50) return "RISIKO SEDANG";
+                return "RISIKO RENDAH";
+            }
+
+            _generateSolusi() {
+                if (this.tingkatRisiko === "RISIKO TINGGI") {
+                    return "⚠️ Segera konsultasi dengan dokter spesialis penyakit dalam!";
+                } else if (this.tingkatRisiko === "RISIKO SEDANG") {
+                    return "⚠️ Disarankan untuk memeriksakan diri ke dokter.";
+                } else {
+                    return "✅ Jaga pola makan sehat, hindari makanan pedas/asam, dan istirahat cukup.";
+                }
+            }
+        }
+
+        /**
+         * Class Diagnosa
+         * Class utama yang mengintegrasikan semua komponen
+         */
+        class Diagnosa {
+            constructor() {
+                this.daftarGejala = [];
+                this.hasil = null;
+                this._inisialisasiGejala();
+            }
+
+            _inisialisasiGejala() {
+                // Data gejala sesuai Tabel 3.2 di laporan
+                const dataGejala = [
+                    ["G01", "Nyeri ulu hati (pedih)", 0.8],
+                    ["G02", "Mual dan ingin muntah", 0.6],
+                    ["G03", "Perut terasa kembung/begah", 0.5],
+                    ["G04", "Sering bersendawa", 0.4],
+                    ["G05", "Nafsu makan menurun drastis", 0.5],
+                    ["G06", "Cepat kenyang saat makan", 0.4],
+                    ["G07", "Panas di dada (Heartburn)", 0.7],
+                    ["G08", "BAB berwarna hitam/gelap", 0.9]
+                ];
+
+                for (let [kode, nama, bobot] of dataGejala) {
+                    this.daftarGejala.push(new Gejala(kode, nama, bobot));
+                }
+            }
+
+            prosesDiagnosa() {
+                // Hitung CF untuk setiap gejala
+                let listCfHasil = [];
+                for (let gejala of this.daftarGejala) {
+                    if (gejala.cfUser > 0) {
+                        let cfHasil = gejala.hitungCfHasil();
+                        listCfHasil.push(cfHasil);
+                    }
+                }
+
+                // Kombinasi CF secara sekuensial
+                let cfFinal = CertaintyFactor.hitungKombinasiSekuensial(listCfHasil);
+
+                // Simpan hasil
+                this.hasil = new HasilDiagnosa(cfFinal);
+                return this.hasil;
+            }
+
+            getTraceData() {
+                return this.daftarGejala.filter(g => g.cfUser > 0);
+            }
+
+            getKombinasiSteps() {
+                let steps = [];
+                let cfTemp = 0.0;
+                let iterasi = 1;
+
+                for (let gejala of this.daftarGejala) {
+                    if (gejala.cfUser > 0) {
+                        let cfBaru = CertaintyFactor.kombinasiCf(cfTemp, gejala.cfHasil);
+                        steps.push({
+                            iterasi: iterasi,
+                            cfLama: cfTemp,
+                            cfGejala: gejala.cfHasil,
+                            cfBaru: cfBaru,
+                            kode: gejala.kode
+                        });
+                        cfTemp = cfBaru;
+                        iterasi++;
+                    }
+                }
+
+                return steps;
+            }
+
+            reset() {
+                for (let gejala of this.daftarGejala) {
+                    gejala.setCfUser(0.0);
+                    gejala.cfHasil = 0.0;
+                }
+                this.hasil = null;
+            }
+        }
+
+        // =====================================================================
+        // INSTANCE GLOBAL & INISIALISASI
+        // =====================================================================
+
+        let sistemDiagnosa = new Diagnosa();
+
+        // Mapping nilai slider ke label
+        const sliderLabels = {
+            0: "Tidak",
+            1: "Tidak Tahu",
+            2: "Sedikit Yakin",
+            3: "Cukup Yakin",
+            4: "Yakin",
+            5: "Sangat Yakin"
+        };
+
+        const sliderValues = {
+            0: 0.0,
+            1: 0.2,
+            2: 0.4,
+            3: 0.6,
+            4: 0.8,
+            5: 1.0
+        };
+
+        // =====================================================================
+        // RENDER UI
+        // =====================================================================
+
+        function renderGejalaCards() {
+            const container = document.getElementById('gejalaContainer');
+            container.innerHTML = '';
+
+            sistemDiagnosa.daftarGejala.forEach((gejala, index) => {
+                const card = document.createElement('div');
+                card.className = 'gejala-card';
+                card.innerHTML = `
+                    <div class="gejala-header">
+                        <span class="gejala-nama">${gejala.nama}</span>
+                        <span class="gejala-kode">${gejala.kode}</span>
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-labels">
+                            <span>Tidak</span>
+                            <span>Tidak Tahu</span>
+                            <span>Sedikit Yakin</span>
+                            <span>Cukup Yakin</span>
+                            <span>Yakin</span>
+                            <span>Sangat Yakin</span>
+                        </div>
+                        <input 
+                            type="range" 
+                            min="0" 
+                            max="5" 
+                            value="0" 
+                            id="slider-${index}"
+                            oninput="updateSliderValue(${index}, this.value)"
+                        >
+                        <div class="selected-value" id="value-${index}">
+                            Tidak (0.0)
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function updateSliderValue(index, value) {
+            const label = sliderLabels[value];
+            const cfValue = sliderValues[value];
+            
+            document.getElementById(`value-${index}`).textContent = 
+                `${label} (${cfValue.toFixed(1)})`;
+            
+            sistemDiagnosa.daftarGejala[index].setCfUser(cfValue);
+        }
+
+        // =====================================================================
+        // FUNGSI DIAGNOSA
+        // =====================================================================
+
+        function diagnosa() {
+            // Cek apakah ada gejala yang dipilih
+            const adaGejala = sistemDiagnosa.daftarGejala.some(g => g.cfUser > 0);
+            
+            if (!adaGejala) {
+                alert('❌ Silakan pilih minimal satu gejala terlebih dahulu!');
+                return;
+            }
+
+            // Proses diagnosa
+            const hasil = sistemDiagnosa.prosesDiagnosa();
+
+            // Tampilkan hasil
+            tampilkanHasil(hasil);
+
+            // Scroll ke hasil
+            document.getElementById('hasilSection').scrollIntoView({ 
+                behavior: 'smooth' 
+            });
+        }
+
+        function tampilkanHasil(hasil) {
+            // Tampilkan section hasil
+            document.getElementById('hasilSection').classList.add('show');
+
+            // Update nilai CF dan persentase
+            document.getElementById('cfValue').textContent = 
+                `${hasil.persentase.toFixed(2)}%`;
+
+            // Update badge risiko
+            const badge = document.getElementById('risikoBadge');
+            badge.textContent = hasil.tingkatRisiko;
+            badge.className = 'risiko-badge';
+            
+            if (hasil.tingkatRisiko === "RISIKO TINGGI") {
+                badge.classList.add('risiko-tinggi');
+            } else if (hasil.tingkatRisiko === "RISIKO SEDANG") {
+                badge.classList.add('risiko-sedang');
+            } else {
+                badge.classList.add('risiko-rendah');
+            }
+
+            // Update solusi
+            document.getElementById('solusiText').textContent = hasil.solusi;
+
+            // Render tabel trace
+            renderTraceTable();
+
+            // Render kombinasi steps
+            renderKombinasiSteps();
+        }
+
+        function renderTraceTable() {
+            const tbody = document.getElementById('traceTableBody');
+            tbody.innerHTML = '';
+
+            const traceData = sistemDiagnosa.getTraceData();
+
+            traceData.forEach(gejala => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td><strong>${gejala.kode}</strong></td>
+                    <td>${gejala.nama}</td>
+                    <td>${gejala.cfUser.toFixed(2)}</td>
+                    <td>${gejala.bobotPakar.toFixed(2)}</td>
+                    <td><strong>${gejala.cfHasil.toFixed(4)}</strong></td>
+                `;
+            });
+        }
+
+        function renderKombinasiSteps() {
+            const container = document.getElementById('kombinasiSteps');
+            const steps = sistemDiagnosa.getKombinasiSteps();
+
+            let html = '';
+            steps.forEach(step => {
+                html += `<strong>Iterasi ${step.iterasi} (${step.kode}):</strong><br>`;
+                html += `CF = ${step.cfLama.toFixed(4)} + ${step.cfGejala.toFixed(4)} × (1 - ${step.cfLama.toFixed(4)})<br>`;
+                html += `CF = <strong style="color: #667eea;">${step.cfBaru.toFixed(4)}</strong><br><br>`;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // =====================================================================
+        // FUNGSI RESET
+        // =====================================================================
+
+        function resetForm() {
+            // Reset sistem
+            sistemDiagnosa.reset();
+
+            // Reset UI sliders
+            sistemDiagnosa.daftarGejala.forEach((gejala, index) => {
+                document.getElementById(`slider-${index}`).value = 0;
+                document.getElementById(`value-${index}`).textContent = "Tidak (0.0)";
+            });
+
+            // Sembunyikan hasil
+            document.getElementById('hasilSection').classList.remove('show');
+
+            // Scroll ke atas
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // =====================================================================
+        // INIT ON LOAD
+        // =====================================================================
+
+        window.onload = function() {
+            renderGejalaCards();
+        };
+    </script>
+</body>
+</html>
